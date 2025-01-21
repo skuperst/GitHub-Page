@@ -3,40 +3,40 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Trigger the workflow when there is a push to the main branch
+      - main  # Trigger the workflow on push to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Install jq (for parsing JSON)
+      # Step 2: Install jq (for parsing JSON)
       - name: Install jq
         run: sudo apt-get install jq
 
-      # Read the value of A from data.json and modify index.html accordingly
+      # Step 3: Modify index.html based on JSON
       - name: Modify index.html based on JSON
         run: |
-          # Read value of A from data.json
-          A=$(jq '.A' data.json)
+          # Read value of A from my_dict.json
+          A=$(jq '.A' my_dict.json)
           echo "A value: $A"
-
+          
           # Modify the content of index.html based on the value of A
           if [ "$A" -lt 3 ]; then
-            B=$(jq '.B' data.json)
+            B=$(jq '.B' my_dict.json)
             echo "Using value B: $B"
             echo "<h1>The value of B is: $B</h1>" > index.html
           else
-            C=$(jq '.C' data.json)
+            C=$(jq '.C' my_dict.json)
             echo "Using value C: $C"
             echo "<h1>The value of C is: $C</h1>" > index.html
           fi
 
-      # Commit changes and push to main branch
+      # Step 4: Commit and push the changes to the main branch
       - name: Commit and push changes to main
         uses: EndBug/add-and-commit@v7
         with:
@@ -46,3 +46,8 @@ jobs:
           add: "index.html"
           push: true
           branch: main
+
+      # Step 5: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+
