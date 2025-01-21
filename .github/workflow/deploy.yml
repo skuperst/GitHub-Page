@@ -1,23 +1,59 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages  # Name of the workflow that will be shown in GitHub Actions UI.
 
 on:
   push:
     branches:
-      - main  # Trigger workflow on pushes to the `main` branch
+      - main  # This workflow will run whenever there is a push to the `main` branch.
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  deploy:  # Define a job called 'deploy'
+    runs-on: ubuntu-latest  # This specifies that the job will run on the latest version of Ubuntu (a Linux-based OS).
 
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # Step 1: Checkout the repository
+      - name: Checkout repository  # This step checks out the repository’s code so we can work with it.
+        uses: actions/checkout@v2  # Use GitHub's official checkout action to pull the latest code.
 
-      # Step 2: Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      # Step 2: Set up Node.js (optional)
+      - name: Set up Node.js  # This step sets up Node.js environment. It's optional and can be skipped if not needed.
+        uses: actions/setup-node@v2  # This action sets up Node.js for use in later steps.
         with:
-          branch: gh-pages  # The branch to deploy to
-          folder: .         # Deploy the entire project (the root of the repository)
-          token: ${{ secrets.GITHUB_TOKEN }}  # Automatically provided token for authentication
+          node-version: '16'  # Specify the version of Node.js to use (in this case, version 16).
+
+      # Step 3: Install dependencies (optional)
+      - name: Install dependencies  # This step installs dependencies for your project, if you have any (e.g., via npm).
+        run: |
+          npm install  # Install dependencies defined in `package.json` (skip if no dependencies are needed).
+
+      # Step 4: Parse JSON, check the condition, and update the HTML content
+      - name: Modify HTML based on JSON  # This step modifies the `index.html` based on the values in `data.json`.
+        run: |
+          # Install jq tool to parse JSON data (you can also use Node.js or other tools, but jq is simple for this task).
+          sudo apt-get install jq
+
+          # Read the value of "A" from the data.json file using jq (a command-line JSON processor).
+          A=$(jq '.A' data.json)
+          echo "A value: $A"  # Log the value of A to the console for debugging purposes.
+
+          # Check if the value of A is less than 3, and choose the appropriate value to display.
+          if [ "$A" -lt 3 ]; then
+            # If A is less than 3, read the value of "B" from the JSON file and set it to the variable B.
+            B=$(jq '.B' data.json)
+            echo "Using value B: $B"  # Log which value (B) is being used.
+            # Write the HTML content to index.html, displaying the value of B.
+            echo "<h1>The value of B is: $B</h1>" > index.html
+          else
+            # If A is not less than 3, read the value of "C" from the JSON file and set it to the variable C.
+            C=$(jq '.C' data.json)
+            echo "Using value C: $C"  # Log which value (C) is being used.
+            # Write the HTML content to index.html, displaying the value of C.
+            echo "<h1>The value of C is: $C</h1>" > index.html
+          fi
+
+      # Step 5: Deploy the site to GitHub Pages
+      - name: Deploy to GitHub Pages  # This step uses an action to deploy the content to GitHub Pages.
+        uses: JamesIves/github-pages-deploy-action@v4  # This action automatically handles the deployment to GitHub Pages.
+        with:
+          branch: gh-pages  # Specifies the target branch where the site will be deployed (gh-pages in this case).
+          folder: .         # Specify the folder to deploy. Here, we're deploying the entire repository (root folder).
+          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub automatically provides a token for authentication. This is needed for deployment.
